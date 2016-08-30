@@ -4,6 +4,7 @@
   *
 */
 
+
 var CalendarDate, RelativeTime, domLoaded, iso8601, months, pad, parse, parseTimeZone, process, relativeDate, relativeTimeAgo, relativeTimeOrDate, relativeWeekday, run, strftime, update, weekdays;
 
 if (isNaN(Date.parse("2011-01-01T12:00:00-05:00"))) {
@@ -88,6 +89,7 @@ strftime = function(time, formatString) {
         } else {
           return (hour + 12) % 12;
         }
+        break;
       case 'm':
         return pad(month + 1);
       case 'M':
@@ -98,12 +100,14 @@ strftime = function(time, formatString) {
         } else {
           return 'AM';
         }
+        break;
       case 'P':
         if (hour > 11) {
           return 'pm';
         } else {
           return 'am';
         }
+        break;
       case 'S':
         return pad(second);
       case 'w':
@@ -119,14 +123,6 @@ strftime = function(time, formatString) {
 };
 
 CalendarDate = (function() {
-  CalendarDate.fromDate = function(date) {
-    return new this(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  };
-
-  CalendarDate.today = function() {
-    return this.fromDate(new Date);
-  };
-
   function CalendarDate(year, month, day) {
     this.date = new Date(Date.UTC(year, month - 1));
     this.date.setUTCDate(day);
@@ -136,8 +132,16 @@ CalendarDate = (function() {
     this.value = this.date.getTime();
   }
 
+  CalendarDate.fromDate = function(date) {
+    return new this(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  };
+
+  CalendarDate.today = function() {
+    return this.fromDate(new Date());
+  };
+
   CalendarDate.prototype.equals = function(calendarDate) {
-    return (calendarDate != null ? calendarDate.value : void 0) === this.value;
+    return (calendarDate !== null ? calendarDate.value : void 0) === this.value;
   };
 
   CalendarDate.prototype.is = function(calendarDate) {
@@ -178,9 +182,9 @@ RelativeTime = (function() {
 
   RelativeTime.prototype.toString = function() {
     var ago, day;
-    if (ago = this.timeElapsed()) {
+    if ((ago = this.timeElapsed()) !== null) {
       return ago + " ago";
-    } else if (day = this.relativeWeekday()) {
+    } else if ((day = this.relativeWeekday()) !== null) {
       return day + " at " + (this.formatTime());
     } else {
       return "on " + (this.formatDate());
@@ -338,7 +342,7 @@ function handleLocalTime() {
     if (!element.hasAttribute("title")) {
       element.setAttribute("title", strftime(time, "%B %e, %Y at %l:%M%P %Z"));
     }
-    return element[textProperty] = (function() {
+    element[textProperty] = (function() {
       var ref, ref1;
       switch (local) {
         case "date":
@@ -352,16 +356,17 @@ function handleLocalTime() {
         case "time-or-date":
           return relativeTimeOrDate(time);
         case "weekday":
-          return (ref = relativeWeekday(time)) != null ? ref : "";
+          return (ref = relativeWeekday(time)) !== null ? ref : "";
         case "weekday-or-date":
-          return (ref1 = relativeWeekday(time)) != null ? ref1 : relativeDate(time);
+          return (ref1 = relativeWeekday(time)) !== null ? ref1 : relativeDate(time);
       }
     })();
+    return element[textProperty];
   });
 }
 
 var onReadyLocalTime = function() {
   handleLocalTime();
-}
+};
 
 $(document).on("page:load ready", onReadyLocalTime);
